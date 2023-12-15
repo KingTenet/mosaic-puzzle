@@ -2,6 +2,7 @@ var Jimp = require("jimp");
 var answers = require("./answers.js");
 var { getEncodings } = require("./encoder.js");
 const { forEachImagePixelData, isEqualRGB } = require("./common.js");
+const { palette } = require("./palette.js");
 
 const allAnswers = answers.all();
 
@@ -26,7 +27,7 @@ function test(image) {
             }
 
             const lookup = allAnswers[answerIndex].getLetters().findIndex((letter) => encodedLetter === letter);
-            return letterMappings[answerIndex][lookup];
+            return letterMappings[answerIndex][lookup] || palette.getBackgroundColor();
         }));
 
     forEachImagePixelData(image, (x, y, rgba) => {

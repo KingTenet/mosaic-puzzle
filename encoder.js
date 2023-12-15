@@ -4,6 +4,8 @@ var { forEachImagePixelData } = require("./common.js");
 var answers = require("./answers.js");
 
 const A_TO_Z = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "X", "Y", "Z"];
+const ALLOWED_CHARS = /[a-zA-Z0-9]/;
+
 
 function selectRandArrElement(arr) {
     const randomKey = Math.floor(rand() * arr.length);
@@ -24,7 +26,7 @@ function shuffle(arr) {
 class Encoder {
     constructor(answerStr, colorsSet) {
         this.answerStr = answerStr;
-        this.letters = shuffle([...new Set(answerStr.split("").filter((letter) => /[a-zA-Z0-9]/.test(letter)))]);
+        this.letters = shuffle([...new Set(answerStr.split("").filter((letter) => ALLOWED_CHARS.test(letter)))]);
         if (this.letters.length < colorsSet.size) {
             throw new Error(`${answerStr} has too few distinct letters for column with ${colorsSet.size} colors`);
         }
@@ -44,16 +46,12 @@ class Encoder {
                 .filter((letter) => !this.letters.includes(letter) && letter != "O"));
         }
         const mapIndex = this.colors.findIndex((tcolor) => tcolor === color);
-        if (!this.colorsMap[mapIndex]) {
-            debugger;
-        }
         return selectRandArrElement(this.colorsMap[mapIndex]);
     }
 
     getLetterMapping(letter) {
         if (!this.letters.includes(letter)) {
             return palette.getBackgroundColor();
-            throw new Error(`'${letter}' not included in answer: ${this.answerStr}`);
         }
         const colorIndex = this.colorsMap.findIndex((letters) => letters.find((tletter) => tletter === letter) !== undefined);
         if (colorIndex === undefined) {
@@ -127,17 +125,7 @@ function getMappings(encoders) {
     const lettersToColorNames = answers.all()
         .map((answer) =>
             answer.getLetters()
-                .map((letter) => {
-                    // return /[A-Za-z0-9]/.test(letter)
-                    //     ? encoders.getEncoderForAnswer(answer.getString()).getLetterMapping(letter).name()
-                    //     : letter === ""
-                    //         ? "SPACE"
-                    //         : letter
-
-                    const color = encoders.getEncoderForAnswer(answer.getString()).getLetterMapping(letter);
-
-                    return color;
-                })
+                .map((letter) => encoders.getEncoderForAnswer(answer.getString()).getLetterMapping(letter))
         );
 
     return [
@@ -164,11 +152,17 @@ function printEncodedImage(image) {
             )
             .join("\n")
     );
+
     console.log(letterMappings
-        .map((letterColors) =>
-            letterColors
-                .map((color) => color.name())
-                .join(","))
+        .map((letterColors, key) =>
+            [
+                letterColors
+                    .map((color) => color.name())
+                    .join(","),
+                answerStrings[key],
+                []
+            ])
+        .flat()
         .join("\n")
     );
 

@@ -66,7 +66,7 @@ class Color {
     }
 
     isBackground() {
-        return this.rgba === BACKGROUND_COLOR;
+        return isEqualRGB(this.rgba, BACKGROUND_COLOR);
     }
 }
 
